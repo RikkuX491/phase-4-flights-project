@@ -10,7 +10,7 @@ from flask_restful import Resource
 from config import app, db, api
 
 # Add your model imports
-from models import Flight, Customer
+from models import Flight, Customer, Booking
 
 # Views go here!
 class AllFlights(Resource):
@@ -101,6 +101,35 @@ class AllCustomers(Resource):
             return make_response(response_body, 422)
 
 api.add_resource(AllCustomers, '/customers')
+
+class AllBookings(Resource):
+    def get(self):
+        bookings = Booking.query.all()
+        response_body = []
+        for booking in bookings:
+            booking_dictionary = booking.to_dict(rules=('-flight.bookings', '-customer.bookings'))
+            booking_dictionary['total_price'] = booking.flight.price * booking.number_of_tickets
+            response_body.append(booking_dictionary)
+        return make_response(response_body, 200)
+    
+    def post(self):
+        number_of_tickets_data = request.json.get('number_of_tickets')
+        flight_id_data = request.json.get('flight_id')
+        customer_id_data = request.json.get('customer_id')
+        try:
+            new_booking = Booking(number_of_tickets=number_of_tickets_data, flight_id=flight_id_data, customer_id=customer_id_data)
+            db.session.add(new_booking)
+            db.session.commit()
+            response_body = new_booking.to_dict(rules=('-flight.bookings', '-customer.bookings'))
+            response_body['total_price'] = new_booking.flight.price * new_booking.number_of_tickets
+            return make_response(response_body, 201)
+        except:
+            response_body = {
+                "error": "Invalid booking data provided!"
+            }
+            return make_response(response_body, 422)
+
+api.add_resource(AllBookings, '/bookings')
 
 @app.route('/')
 def index():

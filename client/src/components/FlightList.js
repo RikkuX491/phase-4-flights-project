@@ -11,9 +11,7 @@ function FlightList(){
     })
 
     return (
-        <ul>
-            {flightComponents}
-        </ul>
+        <ul>{flightComponents}</ul>
     );
 }
 

@@ -8,15 +8,33 @@ import { Outlet, useNavigate } from "react-router-dom";
 function App() {
 
   const [flights, setFlights] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [bookings, setBookings] = useState([]);
 
   const navigate = useNavigate()
 
   useEffect(getFlights, [])
 
+  useEffect(getCustomers, [])
+
+  useEffect(getBookings, [])
+
   function getFlights(){
     fetch('/flights')
     .then(response => response.json())
     .then(flightsData => setFlights(flightsData))
+  }
+
+  function getCustomers(){
+    fetch('/customers')
+    .then(response => response.json())
+    .then(customersData => setCustomers(customersData))
+  }
+
+  function getBookings(){
+    fetch('/bookings')
+    .then(response => response.json())
+    .then(bookingsData => setBookings(bookingsData))
   }
 
   function addFlight(newFlight){
@@ -34,6 +52,26 @@ function App() {
           setFlights([...flights, newFlightData])
           navigate('/')
         })
+      }
+      else{
+        response.json().then(errorData => alert(`Error: ${errorData.error}`))
+      }
+    })
+  }
+
+  function addBooking(newBooking){
+    fetch('/bookings', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(newBooking)
+    })
+    .then(response => {
+      if(response.ok){
+        response.json().then(newBookingData => setBookings([...bookings, newBookingData]))
+        navigate('/bookings')
       }
       else{
         response.json().then(errorData => alert(`Error: ${errorData.error}`))
@@ -71,8 +109,6 @@ function App() {
   }
 
   function deleteFlight(id){
-    // console.log(id)
-    // console.log('deleting flight...')
     fetch(`/flights/${id}`, {
       method: "DELETE"
     })
@@ -95,7 +131,10 @@ function App() {
           flights: flights,
           addFlight: addFlight,
           editFlight: editFlight,
-          deleteFlight: deleteFlight
+          deleteFlight: deleteFlight,
+          customers: customers,
+          bookings: bookings,
+          addBooking: addBooking
         }
       }/>
     </div>
